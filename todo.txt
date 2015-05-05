@@ -1,0 +1,20 @@
+todo.txt - 17% as powerful as JIRA
+
+* Use AMD to define and load dependencies
+* De-couple render loop from logic update loop
+* Define colors per shape
+* Respond to user input
+* Don't let the user move the shape outside of the grid
+* Relinquish control of current shape when it collides with the dead shapes
+* Clear lines when full
+* Scoring
+* Draw a "shadow shape" on the drop zone
+* Implement instant drop (pushing a button drops the shape immediately to the bottom of the grid (for bonus++ points))
+* Implement speed-drop (holding down a button speeds up the rate at which the shape drops (for bonus points))
+* Implement rotation logic
+* Speed up as game progresses
+* Show the 'next up' shape
+* randomize the position and orientation of the shape's starting point
+* High Scores
+* Dynamically re-size the canvas to match the browser size
+* Test on mobile, implement correct scaling and touch controls
