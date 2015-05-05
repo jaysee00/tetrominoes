@@ -18,11 +18,22 @@ define(function() {
 	var ShapeMaker = function(minx, miny, maxx, maxy) {
 		var insertionX = randomInt(minx, maxx);
 		var insertionY = randomInt(miny, maxy);
-		var color = "Red"; // TODO: Make random, or pre-determined based on shape geometry.
+		
+		function getColor(val) {
+			switch (val) {
+				case 1: return "Cyan";
+				case 2: return "Yellow";
+				case 3: return "HotPink";
+				case 4: return "DarkBlue";
+				case 5: return "Orange";
+				case 6: return "Green";
+				case 7: return "Red";
+			}
+		}
 	
-		function getShapeGeometry(type) {
+		function getShapeGeometry(val) {
 			// TODO: Validate input.
-			switch (type) {
+			switch (val) {
 				case 1:
 					// XXXX
 					return [[true, true, true, true]];
@@ -63,7 +74,8 @@ define(function() {
 					return [[false, true], [false, true], [true, true]];
 			}
 		}
-		return new Shape(insertionX, insertionY, getShapeGeometry(randomInt(1, 7)), color);
+		var shapeChooser = randomInt(1, 7);
+		return new Shape(insertionX, insertionY, getShapeGeometry(shapeChooser), getColor(shapeChooser));
 	};
 	
 	return {

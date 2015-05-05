@@ -38,7 +38,7 @@ define(['shape', 'jquery'], function(shape, $) {
 	Game.draw = function(canvas, ctx) {
 		$.each(this.grid, function(index, row) {
 			$.each(row, function(index, box) {
-				drawBlock(box.x, box.y, box.color, canvas, ctx);
+				drawBlock(box.x, box.y, box.color, canvas, ctx, false);
 			});
 		});
 	
@@ -53,21 +53,22 @@ define(['shape', 'jquery'], function(shape, $) {
 				for (var j = 0; j < row.length; j++)
 				{
 					if (row[j] === true) {
-						drawBlock(x+j, y+i, this.currentShape.color, canvas, ctx);
+						drawBlock(x+j, y+i, this.currentShape.color, canvas, ctx, true);
 					}
 				}
 			}
 		}
 	};
 
-	function drawBlock(x, y, color, canvas, ctx) {
+	function drawBlock(x, y, color, canvas, ctx, solid) {
 		x = x * blockSize;
 		y = y * blockSize;
 	
 		//ctx.createLinearGradient(x0, y0, x1, y1);
 		var gradient = ctx.createLinearGradient(x, y+blockSize, x+blockSize, y);
 		gradient.addColorStop(0, color);
-		gradient.addColorStop(.66,"white");
+		var endGradient = solid ? .66 : .33
+		gradient.addColorStop(endGradient,"white");
 		ctx.fillStyle=gradient;
 
 		ctx.beginPath()
