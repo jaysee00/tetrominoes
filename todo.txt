@@ -1,6 +1,5 @@
 todo.txt - 17% as powerful as JIRA
 
-* Use AMD to define and load dependencies
 * De-couple render loop from logic update loop
 * Define colors per shape
 * Respond to user input
