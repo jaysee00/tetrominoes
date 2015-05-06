@@ -13,6 +13,7 @@ define(['shape', 'jquery'], function(shape, $) {
 	};
 
 	Game.config = CONFIG_DEFAULTS;
+	Game.gameInProgress = false;
 
 	// TODO: Hacky! FIXME
 	var blockSize = CONFIG_DEFAULTS.blockSize;
@@ -33,6 +34,7 @@ define(['shape', 'jquery'], function(shape, $) {
 		}
 	
 		console.log("Game initialized");
+		Game.gameInProgress = true;
 	};
 
 	Game.draw = function(canvas, ctx) {
@@ -167,11 +169,20 @@ define(['shape', 'jquery'], function(shape, $) {
 	}
 
 	Game.update = function(delta) {
+		if (!this.gameInProgress) {
+			console.log("Game not in progress - not updating");
+			return;
+		}
+		
 		// Bring in a new shape if needed
 		if (this.currentShape == null) {
 			console.log("new shape!");
 			// TODO:insertion point needs to avoid clipping the edge of the shape
-			this.currentShape = shape.make(0, 0, 0, 0) // TODO: Make the insertion point random.	
+			this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
+			if (checkForCollisions(this.currentShape, this.grid)) {
+				alert("Game ober!");
+				this.gameInProgress = false;
+			}	
 		}
 		else
 		{
@@ -179,8 +190,12 @@ define(['shape', 'jquery'], function(shape, $) {
 				
 				// Turn the current shape into solid blocks!
 				convertToBlocks(this.currentShape, this.grid);
+				
 				this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
-								
+				if (checkForCollisions(this.currentShape, this.grid)) {
+					alert("Game ober!");
+					this.gameInProgress = false;
+				}					
 			}
 			else {
 				// No collision - continue with update.
