@@ -1,9 +1,9 @@
 todo.txt - 17% as powerful as JIRA
 
 * De-couple render loop from logic update loop
+* Game over when a new shape can't be inserted
 * Respond to user input
 * Don't let the user move the shape outside of the grid
-* Relinquish control of current shape when it collides with the dead shapes
 * Clear lines when full
 * Scoring
 * Draw a "shadow shape" on the drop zone

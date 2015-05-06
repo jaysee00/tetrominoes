@@ -38,7 +38,7 @@ define(['shape', 'jquery'], function(shape, $) {
 	Game.draw = function(canvas, ctx) {
 		$.each(this.grid, function(index, row) {
 			$.each(row, function(index, box) {
-				drawBlock(box.x, box.y, box.color, canvas, ctx, false);
+				drawBlock(box.x, box.y, box.color, canvas, ctx, !box.empty);
 			});
 		});
 	
@@ -54,6 +54,11 @@ define(['shape', 'jquery'], function(shape, $) {
 				{
 					if (row[j] === true) {
 						drawBlock(x+j, y+i, this.currentShape.color, canvas, ctx, true);
+					}
+					else
+					{
+						// HACK
+						drawBlock(x+j, y+i, "Black", canvas, ctx, false);
 					}
 				}
 			}
@@ -95,17 +100,93 @@ define(['shape', 'jquery'], function(shape, $) {
 		ctx.stroke();
 	}
 
+	function convertToBlocks(shape, grid) {
+		var height = shape.geometry.length;
+		var width = shape.geometry[0].length;
+		
+		for (var w = 0; w < width; w++) {
+			for (var h = 0; h < height; h++) {
+				var worldX = shape.x + w;
+				var worldY = shape.y + h;
+				
+				if (shape.geometry[h][w] === true) {
+					// Turn the grid box at this point into a solid guy with the same color
+					grid[worldX][worldY].empty = false;
+					grid[worldX][worldY].color = shape.color;
+				}
+			}
+		}
+	}
+
+	function checkForCollisions(shape, grid) {
+		console.log("Checking for collisions on shape @ {" + shape.x + ", " + shape.y + "}");
+	
+		// - for each column the shape inhabits, find the lowest point of the shape in that column.
+		// - for each lowest point in each column, check the point immediately below it; if it's not empty, then trigger a collision.
+		var height = shape.geometry.length;
+		// NOTE: This code currently relies on the shape geometry array defining an equal number of blocks per row (ie. is rectangular).
+		// This is not enforced, if the shape construction algorithm is changed so that this isn't invariant no longer holds, this code 
+		// will break.
+		var width = shape.geometry[0].length;
+		console.log("The shape is " + width + " x " + height);
+		
+		for (var w = 0; w < width; w++)
+		{
+			// Check for a collision in each column of the shape.
+			// Check the lowest row first
+			for (var h = height-1; h >= 0; h--) {
+					
+				var worldX = shape.x + w;
+				var worldY = shape.y + h;
+				
+				console.log("testing box at shape co-ord {" + w + "," + h + "}, world co-ord {" + worldX + "," + worldY + "}");
+				
+				if (shape.geometry[h][w] === true) {
+					console.log("It's a solid part of the shape");
+					// Found the lowest point of the shape in this column. Check the block below it to see if it's empty or not
+					// or if the shape is already at the bottom row
+					if (grid[0].length == shape.y + h + 1) {
+						console.log("Reached the bottom of the grid");
+						return true;
+					}
+						
+					if (grid[worldX][worldY+1].empty === false) {
+						// Found it.
+						console.log("Found collision point @ {" + worldX + ", " + worldY + "}");
+						return true;
+					}
+					console.log("But it's in the clear");						  
+				}
+				else {
+					console.log("it's not a solid part of the shape");
+				}
+			}
+		}
+		console.log("No collisions");
+		return false;		
+	}
+
 	Game.update = function(delta) {
 		// Bring in a new shape if needed
 		if (this.currentShape == null) {
 			console.log("new shape!");
 			// TODO:insertion point needs to avoid clipping the edge of the shape
-			this.currentShape = shape.make(0, 0, 0, 0) // TODO: Make this actually random.	
+			this.currentShape = shape.make(0, 0, 0, 0) // TODO: Make the insertion point random.	
 		}
 		else
 		{
-		// TODO: Collision check
-		this.currentShape.y += 1;			
+			if (checkForCollisions(this.currentShape, this.grid)) {
+				
+				// Turn the current shape into solid blocks!
+				convertToBlocks(this.currentShape, this.grid);
+				this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
+								
+			}
+			else {
+				// No collision - continue with update.
+				console.log("no collisions - updating");
+				this.currentShape.y += 1;
+			}
 		}
 	}	
 	
