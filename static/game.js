@@ -2,8 +2,26 @@
 
 "use strict";
 
-define(['shape', 'jquery'], function(shape, $) {
+define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	var Game = {};
+	
+	var command = null;
+	
+	Game.Commands = {
+		ROTATE: {value: "0", name: "rotate"},
+		LEFT: {value: "1", name:"left"},
+		RIGHT: {value: "2", name: "right"},
+		DROP: {value: "3", name: "drop"},
+		
+		push: function(cmd) {
+			command = cmd;
+		},
+		pop: function() {
+			var cmd = command;
+			command = null;
+			return cmd;
+		}
+	}
 
 	var CONFIG_DEFAULTS = {
 		gridWidth: 10,
@@ -17,155 +35,54 @@ define(['shape', 'jquery'], function(shape, $) {
 
 	// TODO: Hacky! FIXME
 	var blockSize = CONFIG_DEFAULTS.blockSize;
-	var blockRadius = CONFIG_DEFAULTS.blockCurveRadius;
 
 	Game.init = function(settings) {
-		this.config = $.extend(this.config, settings);
-	
-		this.grid = [];
-		for (var w = 0; w < this.config.gridWidth; w++)
-		{
-			var row = [];
-			for (var h = 0; h < this.config.gridHeight; h++)
-			{
-				row.push({x: w, y: h, empty: true, color: "DarkGray"});
-			}
-			this.grid.push(row);
-		}
+		this.config = $.extend(this.config, settings);	
+		this.grid = new Grid(this.config.gridWidth, this.config.gridHeight);
 	
 		console.log("Game initialized");
 		Game.gameInProgress = true;
 	};
 
 	Game.draw = function(canvas, ctx) {
-		$.each(this.grid, function(index, row) {
-			$.each(row, function(index, box) {
-				drawBlock(box.x, box.y, box.color, canvas, ctx, !box.empty);
-			});
+		this.grid.forEach(function(block) {
+			block.draw(canvas, ctx, blockSize);
 		});
-	
-		// Draw the current shape.
-		if (this.currentShape) {
-			var x = this.currentShape.x;
-			var y = this.currentShape.y;
 		
-			for (var i = 0; i < this.currentShape.geometry.length; i++)
-			{
-				var row = this.currentShape.geometry[i];
-				for (var j = 0; j < row.length; j++)
-				{
-					if (row[j] === true) {
-						drawBlock(x+j, y+i, this.currentShape.color, canvas, ctx, true);
-					}
-					else
-					{
-						// HACK
-						drawBlock(x+j, y+i, "Black", canvas, ctx, false);
-					}
-				}
-			}
+		if (this.currentShape) {		
+			this.currentShape.draw(canvas, ctx, blockSize);
 		}
 	};
 
-	function drawBlock(x, y, color, canvas, ctx, solid) {
-		x = x * blockSize;
-		y = y * blockSize;
-	
-		//ctx.createLinearGradient(x0, y0, x1, y1);
-		var gradient = ctx.createLinearGradient(x, y+blockSize, x+blockSize, y);
-		gradient.addColorStop(0, color);
-		var endGradient = solid ? .66 : .33
-		gradient.addColorStop(endGradient,"white");
-		ctx.fillStyle=gradient;
-
-		ctx.beginPath()
-		// top left (x+y)
-		ctx.moveTo(x+blockRadius,y);
-	
-		// top right (x+blockSize, y)
-		ctx.lineTo(x+blockSize-blockRadius, y);
-		ctx.quadraticCurveTo(x+blockSize, y, x+blockSize, y+blockRadius);
-	
-		// bottom right (x+blockSize, y+blockSize)
-		ctx.lineTo(x+blockSize, y+blockSize - blockRadius);
-		ctx.quadraticCurveTo(x+blockSize, y+blockSize, x+blockSize-blockRadius, y+blockSize);
-	
-		// bottom left (x, y+blockSize)
-		ctx.lineTo(x+blockRadius, y+blockSize);
-		ctx.quadraticCurveTo(x, y+blockSize, x, y+blockSize-blockRadius);
-	
-		// top left (x+y)
-		ctx.lineTo(x, y+blockRadius);
-		ctx.quadraticCurveTo(x, y, x+blockRadius, y);
-	
-		ctx.fill();
-		ctx.stroke();
-	}
-
-	function convertToBlocks(shape, grid) {
-		var height = shape.geometry.length;
-		var width = shape.geometry[0].length;
+	function checkForCollisionsTwo(shape, grid) {
+		// Check each block for collissions
+		console.log("Better checking for collisions on shape @ {" + shape.x + ", " + shape.y + "}");
+		var collided = false;
 		
-		for (var w = 0; w < width; w++) {
-			for (var h = 0; h < height; h++) {
-				var worldX = shape.x + w;
-				var worldY = shape.y + h;
-				
-				if (shape.geometry[h][w] === true) {
-					// Turn the grid box at this point into a solid guy with the same color
-					grid[worldX][worldY].empty = false;
-					grid[worldX][worldY].color = shape.color;
+		$.each(shape.getBlocks(), function(index, block) {
+			if (block.isSolid()) {
+				// Escaped game bounds?
+				if (block.x >= grid.width) {
+					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the right boundary");
+					collided = true;
+				} else if (block.x < 0) {
+					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the left boundary");
+					collided = true;
+				} else if (block.y >= grid.height) {
+					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the bottom boundary");
+					collided = true;
+				} else if (block.y < 0) {
+					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the top boundary");
+					collided = true;
+				}
+				// Collides with another solid block?
+				else if (grid.get(block.x, block.y).isSolid()) {
+					console.log("Shape block @ {" + block.x + ", " + block.y + "} collides with another block");
+					collided = true;
 				}
 			}
-		}
-	}
-
-	function checkForCollisions(shape, grid) {
-		console.log("Checking for collisions on shape @ {" + shape.x + ", " + shape.y + "}");
-	
-		// - for each column the shape inhabits, find the lowest point of the shape in that column.
-		// - for each lowest point in each column, check the point immediately below it; if it's not empty, then trigger a collision.
-		var height = shape.geometry.length;
-		// NOTE: This code currently relies on the shape geometry array defining an equal number of blocks per row (ie. is rectangular).
-		// This is not enforced, if the shape construction algorithm is changed so that this isn't invariant no longer holds, this code 
-		// will break.
-		var width = shape.geometry[0].length;
-		console.log("The shape is " + width + " x " + height);
-		
-		for (var w = 0; w < width; w++)
-		{
-			// Check for a collision in each column of the shape.
-			// Check the lowest row first
-			for (var h = height-1; h >= 0; h--) {
-					
-				var worldX = shape.x + w;
-				var worldY = shape.y + h;
-				
-				console.log("testing box at shape co-ord {" + w + "," + h + "}, world co-ord {" + worldX + "," + worldY + "}");
-				
-				if (shape.geometry[h][w] === true) {
-					console.log("It's a solid part of the shape");
-					// Found the lowest point of the shape in this column. Check the block below it to see if it's empty or not
-					// or if the shape is already at the bottom row
-					if (grid[0].length == shape.y + h + 1) {
-						console.log("Reached the bottom of the grid");
-						return true;
-					}
-						
-					if (grid[worldX][worldY+1].empty === false) {
-						// Found it.
-						console.log("Found collision point @ {" + worldX + ", " + worldY + "}");
-						return true;
-					}
-					console.log("But it's in the clear");						  
-				}
-				else {
-					console.log("it's not a solid part of the shape");
-				}
-			}
-		}
-		console.log("No collisions");
-		return false;		
+		});
+		return collided;
 	}
 
 	Game.update = function(delta) {
@@ -179,20 +96,51 @@ define(['shape', 'jquery'], function(shape, $) {
 			console.log("new shape!");
 			// TODO:insertion point needs to avoid clipping the edge of the shape
 			this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
-			if (checkForCollisions(this.currentShape, this.grid)) {
+			if (checkForCollisionsTwo(this.currentShape, this.grid)) {
 				alert("Game ober!");
 				this.gameInProgress = false;
 			}	
 		}
 		else
 		{
-			if (checkForCollisions(this.currentShape, this.grid)) {
-				
+			// TODO: Check for potential collisions before allowing movement.		
+			var nextCommand = this.Commands.pop();
+			console.log("Here's the next command: " + nextCommand);
+			if (nextCommand != null) {
+				if (nextCommand === Game.Commands.LEFT) {
+					
+					var newShape = this.currentShape.copy(this.currentShape.x - 1, this.currentShape.y);
+					if (!checkForCollisionsTwo(newShape, this.grid)) {
+						this.currentShape = newShape;
+					}
+					else 
+					{
+						console.log("Move LEFT would have caused a collision. Not allowing.");
+					}
+				}
+				else if (nextCommand === Game.Commands.RIGHT) {
+					
+					var newShape = this.currentShape.copy(this.currentShape.x + 1, this.currentShape.y);
+					if (!checkForCollisionsTwo(newShape, this.grid)) {
+						this.currentShape = newShape	
+					}
+					else
+					{
+						console.log("Move RIGHT would have caused a collision. Not allowing.");						
+					}
+				}
+			}
+			
+			var newShape2 = this.currentShape.copy(this.currentShape.x, this.currentShape.y + 1);
+			var gridzy = this.grid;
+			if (checkForCollisionsTwo(newShape2, this.grid)) {
 				// Turn the current shape into solid blocks!
-				convertToBlocks(this.currentShape, this.grid);
-				
+				$.each(this.currentShape.getBlocks(), function(index, block) {
+					gridzy.update(block);		
+				});
+			
 				this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
-				if (checkForCollisions(this.currentShape, this.grid)) {
+				if (checkForCollisionsTwo(this.currentShape, this.grid)) {
 					alert("Game ober!");
 					this.gameInProgress = false;
 				}					
@@ -200,7 +148,7 @@ define(['shape', 'jquery'], function(shape, $) {
 			else {
 				// No collision - continue with update.
 				console.log("no collisions - updating");
-				this.currentShape.y += 1;
+				this.currentShape = newShape2;
 			}
 		}
 	}	

@@ -1,15 +1,9 @@
 'use strict';
 
-define(['game'], function(game) {
+define(['game', 'screen'], function(game, screen) {
 	
 	var lastUpdate;
 	var updateInterval = 1000;
-
-	var canvas = document.getElementById("canvas");
-	var ctx = canvas.getContext("2d");
-
-	console.log("Canvas: " + canvas);
-	console.log("ctx: " + ctx);
 
 	function loop(now) {
 		if (!lastUpdate)
@@ -22,7 +16,7 @@ define(['game'], function(game) {
 			lastUpdate = now;
 			// TODO: De-couple the logic delta from the render delta
 			game.update(elapsed);
-			game.draw(canvas, ctx);
+			game.draw(screen.getCanvas(), screen.getContext());
 		}	
 		requestAnimationFrame(loop); 
 	}

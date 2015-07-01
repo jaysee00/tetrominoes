@@ -1,6 +1,6 @@
 "use strict";
 
-define(function() {
+define(['jquery', 'block'], function($, Block) {
 	
 	// TODO: Extract to a lower-level dependency
 	function randomInt(min, max) {
@@ -14,6 +14,35 @@ define(function() {
 		this.color = color;
 	};
 	Shape.prototype.constructor = Shape;
+ 
+	Shape.prototype.copy = function(newX, newY) {
+		return new Shape(newX, newY, this.geometry, this.color);
+	};
+	
+	Shape.prototype.draw = function(canvas, ctx, blockSize) {
+		$.each(this.getBlocks(), function(index, block) {
+			block.draw(canvas, ctx, blockSize);
+		});
+	}
+
+	Shape.prototype.getBlocks = function() {
+		var blocks = [];
+		
+		var height = this.geometry.length;
+		var width = this.geometry[0].length;
+		
+		for (var w = 0; w < width; w++) {
+			for (var h = 0; h < height; h++) {
+				var worldX = this.x + w;
+				var worldY = this.y + h;
+				
+				if (this.geometry[h][w] === true) {
+					blocks.push(new Block(worldX, worldY, false, this.color));
+				}
+			}
+		}
+		return blocks;
+	};
 
 	var ShapeMaker = function(minx, miny, maxx, maxy) {
 		var insertionX = randomInt(minx, maxx);
