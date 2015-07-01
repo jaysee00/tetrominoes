@@ -5,29 +5,18 @@
 define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	var Game = {};
 	
-	var command = null;
-	
 	Game.Commands = {
 		ROTATE: {value: "0", name: "rotate"},
 		LEFT: {value: "1", name:"left"},
 		RIGHT: {value: "2", name: "right"},
 		DROP: {value: "3", name: "drop"},
-		
-		push: function(cmd) {
-			command = cmd;
-		},
-		pop: function() {
-			var cmd = command;
-			command = null;
-			return cmd;
-		}
-	}
+	};
 
 	var CONFIG_DEFAULTS = {
 		gridWidth: 10,
 		gridHeight: 20,
-		blockSize: 32,
-		blockCurveRadius: 32 / 4,
+		blockSize: 24,
+		blockCurveRadius: 24 / 4,
 	};
 
 	Game.config = CONFIG_DEFAULTS;
@@ -56,9 +45,7 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 
 	function checkForCollisionsTwo(shape, grid) {
 		// Check each block for collissions
-		console.log("Better checking for collisions on shape @ {" + shape.x + ", " + shape.y + "}");
 		var collided = false;
-		
 		$.each(shape.getBlocks(), function(index, block) {
 			if (block.isSolid()) {
 				// Escaped game bounds?
@@ -84,6 +71,39 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		});
 		return collided;
 	}
+	
+	Game.command = function(command) {
+		console.log("New Command: " + command);
+		if (command === Game.Commands.LEFT) {				
+			var newShape = this.currentShape.copy(this.currentShape.x - 1, this.currentShape.y);
+			if (!checkForCollisionsTwo(newShape, this.grid)) {
+				this.currentShape = newShape;
+			}
+			else 
+			{
+				console.log("Move LEFT would have caused a collision. Not allowing.");
+			}
+		}
+		else if (command === Game.Commands.RIGHT) {
+			var newShape = this.currentShape.copy(this.currentShape.x + 1, this.currentShape.y);
+			if (!checkForCollisionsTwo(newShape, this.grid)) {
+				this.currentShape = newShape	
+			}
+			else
+			{
+				console.log("Move RIGHT would have caused a collision. Not allowing.");						
+			}
+		}
+		else if (command === Game.Commands.ROTATE) {
+			console.log("ROTATE was issued");
+		}
+		else if (command === Game.Commands.DROP) {
+			console.log("DROP was issued");
+		}
+	}
+
+	var timeSinceLastMove = 0;
+	var moveThreshold = 1000; // TODO: Configurable? Slowly increase?
 
 	Game.update = function(delta) {
 		if (!this.gameInProgress) {
@@ -94,6 +114,7 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		// Bring in a new shape if needed
 		if (this.currentShape == null) {
 			console.log("new shape!");
+			timeSinceLastMove = 0;
 			// TODO:insertion point needs to avoid clipping the edge of the shape
 			this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
 			if (checkForCollisionsTwo(this.currentShape, this.grid)) {
@@ -101,35 +122,16 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 				this.gameInProgress = false;
 			}	
 		}
-		else
-		{
-			// TODO: Check for potential collisions before allowing movement.		
-			var nextCommand = this.Commands.pop();
-			console.log("Here's the next command: " + nextCommand);
-			if (nextCommand != null) {
-				if (nextCommand === Game.Commands.LEFT) {
-					
-					var newShape = this.currentShape.copy(this.currentShape.x - 1, this.currentShape.y);
-					if (!checkForCollisionsTwo(newShape, this.grid)) {
-						this.currentShape = newShape;
-					}
-					else 
-					{
-						console.log("Move LEFT would have caused a collision. Not allowing.");
-					}
-				}
-				else if (nextCommand === Game.Commands.RIGHT) {
-					
-					var newShape = this.currentShape.copy(this.currentShape.x + 1, this.currentShape.y);
-					if (!checkForCollisionsTwo(newShape, this.grid)) {
-						this.currentShape = newShape	
-					}
-					else
-					{
-						console.log("Move RIGHT would have caused a collision. Not allowing.");						
-					}
-				}
-			}
+		
+		
+		
+		timeSinceLastMove += delta;
+		
+		console.log("Elapsed: " + delta);
+		console.log("Time since last move: " + timeSinceLastMove);
+		
+		if (timeSinceLastMove >= moveThreshold) {
+			timeSinceLastMove = 0;
 			
 			var newShape2 = this.currentShape.copy(this.currentShape.x, this.currentShape.y + 1);
 			var gridzy = this.grid;
@@ -147,7 +149,6 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			}
 			else {
 				// No collision - continue with update.
-				console.log("no collisions - updating");
 				this.currentShape = newShape2;
 			}
 		}

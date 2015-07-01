@@ -3,7 +3,7 @@
 define(['game', 'screen'], function(game, screen) {
 	
 	var lastUpdate;
-	var updateInterval = 1000;
+	var updateInterval = 100;
 
 	function loop(now) {
 		if (!lastUpdate)
@@ -14,7 +14,6 @@ define(['game', 'screen'], function(game, screen) {
 	
 		if (elapsed >= updateInterval) {
 			lastUpdate = now;
-			// TODO: De-couple the logic delta from the render delta
 			game.update(elapsed);
 			game.draw(screen.getCanvas(), screen.getContext());
 		}	

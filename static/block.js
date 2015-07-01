@@ -42,7 +42,7 @@ define(function() {
 		//ctx.createLinearGradient(x0, y0, x1, y1);
 		var gradient = ctx.createLinearGradient(canvasX, canvasY+blockSize, canvasX+blockSize, canvasY);
 		gradient.addColorStop(0, this.getColor());
-		var endGradient = this.isSolid() ? .66 : .33
+		var endGradient = this.isSolid() ? .75 : .25;
 		gradient.addColorStop(endGradient,"white");
 		ctx.fillStyle=gradient;
 

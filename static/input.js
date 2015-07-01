@@ -7,7 +7,7 @@ define(['game', 'screen'], function(game, screen) {
 			case 38:
 				console.log("Up arrow pressed");
 				if (game.gameInProgress) {
-					game.Commands.push(game.Commands.ROTATE);
+					game.command(game.Commands.ROTATE);
 					e.preventDefault();
 				}
 				break;
@@ -15,7 +15,7 @@ define(['game', 'screen'], function(game, screen) {
 			case 37:
 				console.log("Left arrow pressed");
 				if (game.gameInProgress) {
-					game.Commands.push(game.Commands.LEFT);
+					game.command(game.Commands.LEFT);
 					e.preventDefault();
 				}
 				break;
@@ -23,7 +23,7 @@ define(['game', 'screen'], function(game, screen) {
 			case 39:
 				console.log("Right arrow pressed");
 				if (game.gameInProgress) {
-					game.Commands.push(game.Commands.RIGHT);
+					game.command(game.Commands.RIGHT);
 					e.preventDefault();
 				}
 				break;
@@ -31,7 +31,7 @@ define(['game', 'screen'], function(game, screen) {
 			case 40:
 				console.log("Down arrow pressed");
 				if (game.gameInProgress) {
-					game.Commands.push(game.Commands.DROP);
+					game.command(game.Commands.DROP);
 					e.preventDefault();
 				}
 				break;
