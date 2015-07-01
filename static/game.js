@@ -98,12 +98,37 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			console.log("ROTATE was issued");
 		}
 		else if (command === Game.Commands.DROP) {
-			console.log("DROP was issued");
+			
+			var shape = this.currentShape;
+			while (!checkForCollisionsTwo(shape.copy(shape.x, shape.y+1), this.grid)) {
+				shape = shape.copy(shape.x, shape.y + 1);
+			}
+			this.currentShape = shape;
+			console.log("Done dropping!");
 		}
 	}
 
 	var timeSinceLastMove = 0;
 	var moveThreshold = 1000; // TODO: Configurable? Slowly increase?
+
+	Game.insertNewShape = function() {
+		console.log("new shape!");
+		timeSinceLastMove = 0;
+		// TODO:insertion point needs to avoid clipping the edge of the shape
+		this.currentShape = shape.make(0, 0, 0, 0);
+		if (checkForCollisionsTwo(this.currentShape, this.grid)) {
+			alert("Game ober!");
+			this.gameInProgress = false;
+		}	
+	}
+	
+	Game.freezeShape = function(shape) {
+		// Turn the  shape into solid blocks!
+		var gridzy = this.grid;
+		$.each(this.currentShape.getBlocks(), function(index, block) {
+			gridzy.update(block);		
+		});
+	}
 
 	Game.update = function(delta) {
 		if (!this.gameInProgress) {
@@ -113,18 +138,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		
 		// Bring in a new shape if needed
 		if (this.currentShape == null) {
-			console.log("new shape!");
-			timeSinceLastMove = 0;
-			// TODO:insertion point needs to avoid clipping the edge of the shape
-			this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
-			if (checkForCollisionsTwo(this.currentShape, this.grid)) {
-				alert("Game ober!");
-				this.gameInProgress = false;
-			}	
+			this.insertNewShape();
 		}
-		
-		
-		
 		timeSinceLastMove += delta;
 		
 		console.log("Elapsed: " + delta);
@@ -136,12 +151,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			var newShape2 = this.currentShape.copy(this.currentShape.x, this.currentShape.y + 1);
 			var gridzy = this.grid;
 			if (checkForCollisionsTwo(newShape2, this.grid)) {
-				// Turn the current shape into solid blocks!
-				$.each(this.currentShape.getBlocks(), function(index, block) {
-					gridzy.update(block);		
-				});
-			
-				this.currentShape = shape.make(0, 0, 0, 0); // TODO: Make the insertion point random
+				this.freezeShape(newShape2);
+				this.insertNewShape();
 				if (checkForCollisionsTwo(this.currentShape, this.grid)) {
 					alert("Game ober!");
 					this.gameInProgress = false;
