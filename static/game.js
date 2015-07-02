@@ -56,21 +56,21 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			if (block.isSolid()) {
 				// Escaped game bounds?
 				if (block.x >= grid.width) {
-					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the right boundary");
+//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the right boundary");
 					collided = true;
 				} else if (block.x < 0) {
-					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the left boundary");
+//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the left boundary");
 					collided = true;
 				} else if (block.y >= grid.height) {
-					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the bottom boundary");
+//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the bottom boundary");
 					collided = true;
 				} else if (block.y < 0) {
-					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the top boundary");
+//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the top boundary");
 					collided = true;
 				}
 				// Collides with another solid block?
 				else if (grid.get(block.x, block.y).isSolid()) {
-					console.log("Shape block @ {" + block.x + ", " + block.y + "} collides with another block");
+//					console.log("Shape block @ {" + block.x + ", " + block.y + "} collides with another block");
 					collided = true;
 				}
 			}
@@ -101,6 +101,7 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			}
 		}
 		else if (command === Game.Commands.ROTATE) {
+			this.currentShape.rotate();
 			console.log("ROTATE was issued");
 		}
 		else if (command === Game.Commands.DROP) {
@@ -151,8 +152,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		}
 		timeSinceLastMove += delta;
 		
-		console.log("Elapsed: " + delta);
-		console.log("Time since last move: " + timeSinceLastMove);
+//		console.log("Elapsed: " + delta);
+//		console.log("Time since last move: " + timeSinceLastMove);
 		
 		if (timeSinceLastMove >= moveThreshold) {
 			timeSinceLastMove = 0;

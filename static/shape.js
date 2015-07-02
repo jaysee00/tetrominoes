@@ -28,6 +28,26 @@ define(['jquery', 'block'], function($, Block) {
 			block.draw(canvas, ctx, blockSize);
 		});
 	}
+	
+	function transpose(m) {
+		var result = new Array(m[0].length);
+        	for (var i = 0; i < m[0].length; i++) {
+            	result[i] = new Array(m.length - 1);
+            	for (var j = m.length - 1; j > -1; j--) {
+                	result[i][j] = m[j][i];
+            	}
+        	}
+        return result;
+	}
+	
+	function reverseRows(m) {
+		return m.reverse();
+	}
+
+	Shape.prototype.rotate = function() {
+		// Each time rotate is called we rotate by 90 degrees
+		this.geometry = transpose(reverseRows(this.geometry));
+	}
 
 	Shape.prototype.getBlocks = function() {
 		var blocks = [];
