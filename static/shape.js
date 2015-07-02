@@ -19,6 +19,10 @@ define(['jquery', 'block'], function($, Block) {
 		return new Shape(newX, newY, this.geometry, this.color);
 	};
 	
+	Shape.prototype.asShadow = function() {
+		return new Shape(this.x, this.y, this.geometry, Block.ShadowColor);
+	}
+	
 	Shape.prototype.draw = function(canvas, ctx, blockSize) {
 		$.each(this.getBlocks(), function(index, block) {
 			block.draw(canvas, ctx, blockSize);

@@ -38,7 +38,13 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			block.draw(canvas, ctx, blockSize);
 		});
 		
-		if (this.currentShape) {		
+		if (this.currentShape) {
+			
+			// Draw a shadow of this shape where it would drop is the drop command was issued.
+			// Draw it before the actual shape itself so that if there's overlap, the shape wins.
+			var shadow = this.findDropLocation(this.currentShape).asShadow();
+			shadow.draw(canvas, ctx, blockSize);
+							
 			this.currentShape.draw(canvas, ctx, blockSize);
 		}
 	};
@@ -98,14 +104,17 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			console.log("ROTATE was issued");
 		}
 		else if (command === Game.Commands.DROP) {
-			
-			var shape = this.currentShape;
-			while (!checkForCollisionsTwo(shape.copy(shape.x, shape.y+1), this.grid)) {
-				shape = shape.copy(shape.x, shape.y + 1);
-			}
-			this.currentShape = shape;
+			this.currentShape = this.findDropLocation(this.currentShape);
 			console.log("Done dropping!");
 		}
+	}
+
+	Game.findDropLocation = function(initialShape) {
+		var shape = initialShape;
+		while (!checkForCollisionsTwo(shape.copy(shape.x, shape.y+1), this.grid)) {
+				shape = shape.copy(shape.x, shape.y + 1);
+		}
+		return shape;
 	}
 
 	var timeSinceLastMove = 0;

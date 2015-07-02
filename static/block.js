@@ -10,6 +10,7 @@ define(function() {
 	};
 	Block.prototype.constructor = Block;
 	Block.EmptyColor = "DarkGray";
+	Block.ShadowColor = "Black";
 	
 	Block.prototype.getColor = function() {
 		return this._color;
