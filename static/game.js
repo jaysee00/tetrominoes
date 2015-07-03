@@ -56,21 +56,16 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			if (block.isSolid()) {
 				// Escaped game bounds?
 				if (block.x >= grid.width) {
-//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the right boundary");
 					collided = true;
 				} else if (block.x < 0) {
-//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the left boundary");
 					collided = true;
 				} else if (block.y >= grid.height) {
-//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the bottom boundary");
 					collided = true;
 				} else if (block.y < 0) {
-//					console.log("Shape block @ {" + block.x + ", " + block.y + "} exceeds the top boundary");
 					collided = true;
 				}
 				// Collides with another solid block?
 				else if (grid.get(block.x, block.y).isSolid()) {
-//					console.log("Shape block @ {" + block.x + ", " + block.y + "} collides with another block");
 					collided = true;
 				}
 			}
@@ -133,10 +128,35 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	}
 	
 	Game.freezeShape = function(shape) {
+		console.log("Freezing shape!");
 		// Turn the  shape into solid blocks!
 		var gridzy = this.grid;
 		$.each(this.currentShape.getBlocks(), function(index, block) {
 			gridzy.update(block);		
+		});
+		
+		// Check for any rows that can be removed
+		var rowsToDelete = [];
+		gridzy.forEachRow(function(index, row) {
+			var removeThisRow = true;
+			for (var i = 0; i < row.length; i++) {
+				var block = row[i];
+				if (block.isEmpty()) {
+					removeThisRow = false;
+				}
+			}
+			if (removeThisRow) {
+				console.log("Row " + index + " is full!");
+				rowsToDelete.push(index);
+			}
+			else
+			{
+				console.log("Row " + index + " is not full");
+			}
+		});
+		
+		$.each(rowsToDelete, function(index, row) {
+			gridzy.clearRow(row);
 		});
 	}
 
@@ -151,9 +171,6 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			this.insertNewShape();
 		}
 		timeSinceLastMove += delta;
-		
-//		console.log("Elapsed: " + delta);
-//		console.log("Time since last move: " + timeSinceLastMove);
 		
 		if (timeSinceLastMove >= moveThreshold) {
 			timeSinceLastMove = 0;
