@@ -127,7 +127,7 @@ define(['jquery', 'block'], function($, Block) {
 					return [[false, true], [false, true], [true, true]];
 			}
 		}
-		var shapeChooser = randomInt(1, 7);
+		var shapeChooser = randomInt(1, 8);
 		return new Shape(insertionX, insertionY, getShapeGeometry(shapeChooser), getColor(shapeChooser));
 	};
 	

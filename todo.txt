@@ -11,4 +11,3 @@ todo.txt - 17% as powerful as JIRA
 * BUG: Fix the bug when you rotate a shape on the edge of the grid causing a collision.
 * Redesign the look & feel - make the background lighter, make the drop shadow lighter, make it more obvious once the shape has 'locked' into its final position (make it darker? Border change?)
 * BUG: Don't let the shape be moved aftet the instant-drop command
-* BUG: The 8th tetromino is never inserted into the game area
