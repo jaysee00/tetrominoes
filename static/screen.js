@@ -16,6 +16,9 @@ define(['jquery'], function($) {
 		},
 		getContext: function() {
 			return this.getCanvas().getContext("2d");
-		}
+		},
+        getScoreBox: function() {
+            return $("#score");
+        }
 	}
 });

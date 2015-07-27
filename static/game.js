@@ -28,25 +28,28 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	Game.init = function(settings) {
 		this.config = $.extend(this.config, settings);	
 		this.grid = new Grid(this.config.gridWidth, this.config.gridHeight);
+        this.score = 0;
 	
 		console.log("Game initialized");
 		Game.gameInProgress = true;
 	};
 
-	Game.draw = function(canvas, ctx) {
+	Game.draw = function(canvas, ctx, scoreBox) {
 		this.grid.forEach(function(block) {
 			block.draw(canvas, ctx, blockSize);
 		});
 		
 		if (this.currentShape) {
-			
-			// Draw a shadow of this shape where it would drop is the drop command was issued.
+			// Draw a shadow of this shape where it would drop if the drop command was issued.
 			// Draw it before the actual shape itself so that if there's overlap, the shape wins.
 			var shadow = this.findDropLocation(this.currentShape).asShadow();
 			shadow.draw(canvas, ctx, blockSize);
 							
 			this.currentShape.draw(canvas, ctx, blockSize);
 		}
+        
+        // Update score value
+        scoreBox.val(this.score);
 	};
 
 	function checkForCollisionsTwo(shape, grid) {
@@ -101,6 +104,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		}
 		else if (command === Game.Commands.DROP) {
 			this.currentShape = this.findDropLocation(this.currentShape);
+            // TODO: Maybe reset the timeSinceLastMove to make the next move instantaneous once dropping is finished?
+            // The lag feels a bit weird right now if you drop when the timer still has some time to burn before the next move.
 			console.log("Done dropping!");
 		}
 	}
@@ -128,6 +133,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	}
 	
 	Game.freezeShape = function(shape) {
+        var game = this;
+        
 		console.log("Freezing shape!");
 		// Turn the  shape into solid blocks!
 		var gridzy = this.grid;
@@ -157,6 +164,9 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		
 		$.each(rowsToDelete, function(index, row) {
 			gridzy.clearRow(row);
+            
+            // TODO: Encapsulate this a bit better.
+            game.score += 10;
 		});
 	}
 
