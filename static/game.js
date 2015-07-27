@@ -140,6 +140,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	Game.insertNewShape = function() {
 		console.log("new shape!");
 		timeSinceLastMove = 0;
+        movesThisShape = 0;
+        
 		// TODO:insertion point needs to avoid clipping the edge of the shape
 		this.currentShape = shape.make(0, 0, 0, 0);
 		if (checkForCollisionsTwo(this.currentShape, this.grid)) {
@@ -157,6 +159,10 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		$.each(this.currentShape.getBlocks(), function(index, block) {
 			gridzy.update(block);		
 		});
+        
+        // Add score based on how long the shape was in free-fall
+        // (ie. insta-dropping the shape from the very top of the grid awards the maximum possible points here)
+        this.score += (21 + (3 * this.getLevel())) - movesThisShape;        
 		
 		// Check for any rows that can be removed
 		var rowsToDelete = [];
@@ -189,6 +195,7 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 	}
 
 	var timeSinceLastMove = 0;
+    var movesThisShape = 0;
 
 	Game.update = function(delta) {
 		if (!this.gameInProgress) {
@@ -221,6 +228,7 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			else {
 				// No collision - continue with update.
 				this.currentShape = newShape2;
+                movesThisShape++;
 			}
 		}
 	}	
