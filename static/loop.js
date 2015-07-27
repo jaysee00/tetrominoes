@@ -15,7 +15,7 @@ define(['game', 'screen'], function(game, screen) {
 		if (elapsed >= updateInterval) {
 			lastUpdate = now;
 			game.update(elapsed);
-			game.draw(screen.getCanvas(), screen.getContext(), screen.getScoreBox());
+			game.draw(screen);
 		}	
 		requestAnimationFrame(loop); 
 	}

@@ -29,12 +29,29 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		this.config = $.extend(this.config, settings);	
 		this.grid = new Grid(this.config.gridWidth, this.config.gridHeight);
         this.score = 0;
-	
+        this.linesCleared = 0;
+       
 		console.log("Game initialized");
 		Game.gameInProgress = true;
 	};
+    
+    Game.getLevel = function() {
+        if (this.linesCleared <= 0) {
+            return 1;
+        } else if (this.linesCleared <= 90) {
+            return Math.floor(1 + ((this.linesCleared - 1)) / 10);
+        }
+        else {
+            return 10;
+        }
+    };
 
-	Game.draw = function(canvas, ctx, scoreBox) {
+	Game.draw = function(screen) {
+        
+        var canvas = screen.getCanvas();
+        var ctx = screen.getContext();
+        var scoreBox = screen.getScoreBox();
+        
 		this.grid.forEach(function(block) {
 			block.draw(canvas, ctx, blockSize);
 		});
@@ -50,6 +67,8 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
         
         // Update score value
         scoreBox.val(this.score);
+        screen.getLinesBox().val(this.linesCleared);
+        screen.getLevelBox().val(this.getLevel());
 	};
 
 	function checkForCollisionsTwo(shape, grid) {
@@ -118,9 +137,6 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 		return shape;
 	}
 
-	var timeSinceLastMove = 0;
-	var moveThreshold = 1000; // TODO: Configurable? Slowly increase?
-
 	Game.insertNewShape = function() {
 		console.log("new shape!");
 		timeSinceLastMove = 0;
@@ -162,13 +178,17 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			}
 		});
 		
+        
+        // TODO: Encapsulate this a bit better.
+        game.linesCleared += rowsToDelete.length;
+        game.score += (rowsToDelete.length * 100);
+        
 		$.each(rowsToDelete, function(index, row) {
 			gridzy.clearRow(row);
-            
-            // TODO: Encapsulate this a bit better.
-            game.score += 10;
 		});
 	}
+
+	var timeSinceLastMove = 0;
 
 	Game.update = function(delta) {
 		if (!this.gameInProgress) {
@@ -176,6 +196,9 @@ define(['shape', 'grid', 'jquery'], function(shape, Grid, $) {
 			return;
 		}
 		
+        var moveThreshold = ((11 - this.getLevel()) * 0.05) * 1000;
+
+        
 		// Bring in a new shape if needed
 		if (this.currentShape == null) {
 			this.insertNewShape();

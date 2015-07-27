@@ -10,6 +10,10 @@ define(['jquery'], function($) {
 		console.error("Too many canvases (canvii?)");
 	}
 	
+    var score = $("#score");
+    var lines = $("#lines");
+    var level = $("#level");
+    
 	return {
 		getCanvas: function() {
 			return canvas.get()[0];
@@ -18,7 +22,13 @@ define(['jquery'], function($) {
 			return this.getCanvas().getContext("2d");
 		},
         getScoreBox: function() {
-            return $("#score");
+            return score;
+        },
+        getLevelBox: function() {
+            return level;
+        },
+        getLinesBox: function() {
+            return lines;
         }
 	}
 });
